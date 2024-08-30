@@ -1,0 +1,62 @@
+pipeline {
+    agent any
+
+    environment {
+        // Define Docker image names and tags
+        DOCKER_IMAGE = 'nestjs-app'
+        CONTAINER_NAME = 'nestjs-app-container'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Checkout code from your repository
+                git 'https://github.com/Fely1949/test1.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    // Build Docker image for the application
+                    docker.build(DOCKER_IMAGE, 'nestjs/')
+                }
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                script {
+                    // Run tests inside the Docker container
+                    docker.image(DOCKER_IMAGE).inside {
+                        sh 'npm test'  // Adjust the command based on your test framework
+                    }
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                script {
+                    // Stop and remove any existing container
+                    sh """
+                        docker stop ${CONTAINER_NAME} || true
+                        docker rm ${CONTAINER_NAME} || true
+                    """
+
+                    // Deploy the new container
+                    sh """
+                        docker run -d --name ${CONTAINER_NAME} -p 3000:3000 ${DOCKER_IMAGE}
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            // Cleanup actions
+            cleanWs()
+        }
+    }
+}
