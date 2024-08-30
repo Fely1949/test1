@@ -11,7 +11,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Checkout code from your repository
-                git 'https://github.com/Fely1949/test1.git'
+                git 'https://github.com/Fely1949/test1.git'            
             }
         }
 
